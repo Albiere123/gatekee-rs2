@@ -1,59 +1,104 @@
 package br.ufpb.dcx.lima.albiere.controllers;
 
 import br.ufpb.dcx.lima.albiere.sistema.SistemaRegistrador;
-
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.security.NoSuchAlgorithmException;
 
-public class LoginController implements ActionListener {
-    private SistemaRegistrador sistema;
-    private JFrame janela;
-    
+public class LoginController { // <--- Sem implements ActionListener
+
+    private final SistemaRegistrador sistema;
+    private final JFrame janela;
+
     public LoginController(SistemaRegistrador sistema, JFrame janela) {
-        this.sistema=sistema;
-        this.janela=janela;
+        this.sistema = sistema;
+        this.janela = janela;
     }
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        login();
-    }
-    
-    public void registrar() throws NoSuchAlgorithmException {
-        String usuario = JOptionPane.showInputDialog(janela, "Digite seu usuário:", "Registro - GateKeepers", JOptionPane.QUESTION_MESSAGE);
-        String senha = JOptionPane.showInputDialog(janela, "Digite sua senha:", "Registro - GateKeepers", JOptionPane.QUESTION_MESSAGE);
-        if (sistema.registrarLogin(usuario, senha)) {
-            login();
-        } else {
-            JOptionPane.showMessageDialog(janela, "Este usuário já existe!", "Registro - GatekKeepers", JOptionPane.QUESTION_MESSAGE);
+
+    public void iniciarProcessoLogin(boolean exit) {
+        boolean logado = false;
+
+        while (!logado) {
+
+            String usuario = JOptionPane.showInputDialog(janela, "Digite seu usuário:", "Login - GateKeepers", JOptionPane.QUESTION_MESSAGE);
+
+            if (usuario == null) {
+                if(exit) System.exit(0);
+                else {
+                    janela.dispose();
+                    new MainController(sistema);
+                }
+                return;
+            }
+
+            if (usuario.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(janela, "Usuário inválido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                continue;
+            }
+
+            if (!sistema.procurarUsuarioLogin(usuario)) {
+                int resposta = JOptionPane.showConfirmDialog(janela,
+                        "Usuário não encontrado. Deseja se registrar?",
+                        "GateKeepers",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (resposta == JOptionPane.YES_OPTION) {
+                    registrar(usuario);
+
+                    if (sistema.getCurrentUser() != null) logado = true;
+                }
+
+            } else {
+                String senha = JOptionPane.showInputDialog(janela, "Digite sua senha:", "Login - GateKeepers", JOptionPane.QUESTION_MESSAGE);
+                if (senha == null) {
+                    System.exit(0);
+                    return;
+                }
+
+                try {
+                    if (sistema.login(usuario, senha)) {
+                        JOptionPane.showMessageDialog(janela, "Bem-vindo, " + usuario + "!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                        logado = true;
+                        janela.dispose();
+                        new MainController(sistema);
+
+                    } else {
+                        JOptionPane.showMessageDialog(janela, "Senha Incorreta!", "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(janela, "Erro ao logar: " + ex.getMessage());
+                }
+            }
         }
     }
-    
-    public void login() {
-        String usuario = JOptionPane.showInputDialog(janela, "Digite seu usuário:", "Login - GateKeepers", JOptionPane.QUESTION_MESSAGE);
-        String senha = JOptionPane.showInputDialog(janela, "Digite sua senha:", "Login - GateKeepers", JOptionPane.QUESTION_MESSAGE);
-        if(!sistema.procurarUsuarioLogin(usuario)) {
-            String outraEscolha = JOptionPane.showInputDialog(janela, "Usuario não encontrado, deseja se registrar?", "Menu De Login - GateKeepers", JOptionPane.QUESTION_MESSAGE);
-            if (outraEscolha.equalsIgnoreCase("Sim") || outraEscolha.equalsIgnoreCase("S")) {
-                try {
-                    registrar();
-                } catch (NoSuchAlgorithmException ex) {
-                    throw new RuntimeException(ex);
-                }
+
+    public void registrar(String usuarioInicial) {
+        try {
+            String usuario = (usuarioInicial != null) ? usuarioInicial :
+                    JOptionPane.showInputDialog(janela, "Escolha um nome de usuário:", "Registro", JOptionPane.QUESTION_MESSAGE);
+
+            if (usuario == null || usuario.trim().isEmpty()) return;
+
+            if (sistema.procurarUsuarioLogin(usuario)) {
+                JOptionPane.showMessageDialog(janela, "Este usuário já existe!", "Erro", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String senha = JOptionPane.showInputDialog(janela, "Crie uma senha:", "Registro", JOptionPane.QUESTION_MESSAGE);
+            if (senha == null || senha.trim().isEmpty()) return;
+
+            if (sistema.registrarLogin(usuario, senha)) {
+                JOptionPane.showMessageDialog(janela, "Registrado com sucesso! Entrando...");
+
+                sistema.login(usuario, senha);
+
+                janela.dispose();
+                new MainController(sistema);
+
             } else {
-                JOptionPane.showMessageDialog(janela, "Saindo...", "Login - GatekKeepers", JOptionPane.QUESTION_MESSAGE);
-                System.exit(0);
+                JOptionPane.showMessageDialog(janela, "Erro ao registrar.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
-        } else {
-            try {
-                if (!sistema.login(usuario, senha)) {
-                    JOptionPane.showMessageDialog(janela, "Senha Incorreta", "Login - GatekKeepers", JOptionPane.QUESTION_MESSAGE);
-                }
-            } catch (NoSuchAlgorithmException ex) {
-                throw new RuntimeException(ex);
-            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(janela, "Erro técnico: " + ex.getMessage());
         }
     }
 }

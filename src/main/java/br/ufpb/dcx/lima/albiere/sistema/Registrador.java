@@ -44,13 +44,11 @@ public class Registrador {
 
 
     public boolean equals(Registrador reg) {
-        if(reg.getAplicativo().equals(this.aplicativo) && reg.getUsuario().equals(this.usuario) && reg.getSenha().equals(this.senha)) return true;
-        return false;
+        return reg.getAplicativo().equals(this.aplicativo) && reg.getUsuario().equals(this.usuario) && reg.getSenha().equals(this.senha);
     }
 
     public boolean equals(String senha) {
-        if(senha.equals(this.senha)) return true;
-        return false;
+        return senha.equals(this.senha);
     }
     public int hashCode(String senha1) {
         return Objects.hashCode(senha1);

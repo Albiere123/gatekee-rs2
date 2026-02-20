@@ -26,41 +26,60 @@ public class LoginDB {
         this.cacheLogins = carregarArquivoCompleto();
     }
 
-    public List<String> carregarTodosOsUsuarios() {
-        return new ArrayList<>(this.cacheLogins.keySet());
-    }
-
     public void salvarLogin(String user, String senhaHash) {
-        this.cacheLogins.put(user, senhaHash);
+        this.cacheLogins.put(user.toLowerCase().trim(), senhaHash);
         salvarArquivoCompleto(this.cacheLogins);
     }
 
     public String carregarSenha(String user) {
-        return this.cacheLogins.get(user);
+        String userTratado = user.toLowerCase().trim();
+        String senha = this.cacheLogins.get(userTratado);
+
+        if (senha == null) {
+            System.out.println("[DEBUG LoginDB] Senha não encontrada para: '" + userTratado + "'");
+            System.out.println("[DEBUG LoginDB] Usuários disponíveis no Map: " + this.cacheLogins.keySet());
+        }
+
+        return senha;
     }
 
-    public boolean verificarUsuario(String user) {
-        return this.cacheLogins.containsKey(user);
-    }
-
-    public void deletarLogin(String user) {
-        this.cacheLogins.remove(user);
-        salvarArquivoCompleto(this.cacheLogins);
+    public boolean procurarUser(String user) {
+        return cacheLogins.containsKey(user.toLowerCase().trim());
     }
 
     private Map<String, String> carregarArquivoCompleto() {
         Yaml yaml = new Yaml();
         File arquivo = new File(nomeArquivo);
+        Map<String, String> mapaSeguro = new LinkedHashMap<>();
+
+        System.out.println("[DEBUG LoginDB] Lendo arquivo de: " + arquivo.getAbsolutePath());
 
         if (!arquivo.exists()) {
-            return new LinkedHashMap<>();
+            System.out.println("[DEBUG LoginDB] Arquivo não existe. Criando novo mapa vazio.");
+            return mapaSeguro;
         }
 
         try (FileReader reader = new FileReader(arquivo)) {
-            Map<String, String> data = yaml.load(reader);
-            return (data != null) ? data : new LinkedHashMap<>();
+
+            Map<String, Object> dadosBrutos = yaml.load(reader);
+
+            if (dadosBrutos == null) return mapaSeguro;
+
+            for (Map.Entry<String, Object> entry : dadosBrutos.entrySet()) {
+                String chave = String.valueOf(entry.getKey()).toLowerCase().trim();
+                String valor = String.valueOf(entry.getValue());
+                mapaSeguro.put(chave, valor);
+            }
+
+            System.out.println("[DEBUG LoginDB] Dados carregados com sucesso: " + mapaSeguro.keySet());
+            return mapaSeguro;
+
         } catch (IOException e) {
-            return new LinkedHashMap<>();
+            System.err.println("[ERRO LoginDB] Falha ao ler arquivo: " + e.getMessage());
+            return mapaSeguro;
+        } catch (Exception e) {
+            System.err.println("[ERRO LoginDB] Erro genérico ao processar YAML: " + e.getMessage());
+            return mapaSeguro;
         }
     }
 
@@ -70,14 +89,15 @@ public class LoginDB {
         options.setPrettyFlow(true);
         Yaml yaml = new Yaml(options);
 
-        try (FileWriter writer = new FileWriter(nomeArquivo)) {
+        File arquivo = new File(nomeArquivo);
+        if (arquivo.getParentFile() != null) {
+            arquivo.getParentFile().mkdirs();
+        }
+
+        try (FileWriter writer = new FileWriter(arquivo)) {
             yaml.dump(dados, writer);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao salvar o arquivo de logins: " + e.getMessage(), e);
         }
-    }
-
-    public boolean procurarUser(String user) {
-        return cacheLogins.containsKey(user);
     }
 }
