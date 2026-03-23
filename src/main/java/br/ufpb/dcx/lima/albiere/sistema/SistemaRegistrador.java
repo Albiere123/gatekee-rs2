@@ -60,29 +60,25 @@ public class SistemaRegistrador implements InterfaceServico {
 
     @Override
     public List<Registrador> procuraAplicativo(String aplicativo) throws AplicativoInexistenteException {
-        List<Registrador> listaDoUsuario = getListaUsuarioAtual();
-        List<Registrador> encontrados = new ArrayList<>();
+        List<Registrador> encontrados = getListaUsuarioAtual().stream()
+                .filter(r -> r.getAplicativo().equalsIgnoreCase(aplicativo))
+                .toList();
 
-        for (Registrador r : listaDoUsuario) {
-            if (r.getAplicativo().equalsIgnoreCase(aplicativo)) {
-                encontrados.add(r);
-            }
+        if (encontrados.isEmpty()) {
+            throw new AplicativoInexistenteException("Aplicativo não registrado");
         }
-        if (encontrados.isEmpty()) throw new AplicativoInexistenteException("Aplicativo não registrado");
         return encontrados;
     }
 
     @Override
     public List<Registrador> procuraUsuario(String usuario) throws UsuarioInexistenteException {
-        List<Registrador> listaDoUsuario = getListaUsuarioAtual();
-        List<Registrador> encontrados = new ArrayList<>();
+        List<Registrador> encontrados = getListaUsuarioAtual().stream()
+                .filter(r -> r.getUsuario().equalsIgnoreCase(usuario))
+                .toList();
 
-        for (Registrador r : listaDoUsuario) {
-            if (r.getUsuario().equalsIgnoreCase(usuario)) {
-                encontrados.add(r);
-            }
+        if (encontrados.isEmpty()) {
+            throw new UsuarioInexistenteException("Usuário não registrado");
         }
-        if (encontrados.isEmpty()) throw new UsuarioInexistenteException("Usuário não registrado");
         return encontrados;
     }
 
