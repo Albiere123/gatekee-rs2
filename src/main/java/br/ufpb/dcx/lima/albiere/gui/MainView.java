@@ -22,22 +22,22 @@ public class MainView extends JFrame {
 
         // --- Painel Superior (Barra de Ferramentas) ---
         JPanel painelTopo = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        painelTopo.setBackground(new Color(60, 63, 65)); // Cor escura estilo IDE
+        painelTopo.setBackground(new Color(60, 63, 65));
 
         btnNovo = criarBotao("Novo Registro");
         btnEditar = criarBotao("Editar Selecionado");
         btnExcluir = criarBotao("Excluir");
         btnAlterarSenhaLogin = criarBotao("Alterar Minha Senha Mestra");
         btnTrocarUsuario = criarBotao("Trocar Usuário");
-        btnTrocarUsuario.setBackground(new Color(70, 130, 180)); // Azulzinho para diferenciar
+        btnTrocarUsuario.setBackground(new Color(70, 130, 180));
         btnTrocarUsuario.setForeground(Color.WHITE);
         btnSair = criarBotao("Sair");
-        btnSair.setBackground(new Color(190, 50, 50)); // Vermelho para sair
+        btnSair.setBackground(new Color(190, 50, 50));
 
         painelTopo.add(btnNovo);
         painelTopo.add(btnEditar);
         painelTopo.add(btnExcluir);
-        painelTopo.add(Box.createHorizontalStrut(20)); // Espaço
+        painelTopo.add(Box.createHorizontalStrut(20));
         painelTopo.add(btnAlterarSenhaLogin);
         painelTopo.add(btnTrocarUsuario);
         painelTopo.add(btnSair);
@@ -45,10 +45,8 @@ public class MainView extends JFrame {
         add(painelTopo, BorderLayout.NORTH);
 
         // --- Tabela Central ---
-        // Colunas: Aplicativo | Usuário | Email | Senha
         String[] colunas = {"Aplicativo", "Usuário", "Email", "Senha"};
 
-        // Modelo que impede edição direta na célula (para obrigar usar o botão Editar)
         modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -62,18 +60,16 @@ public class MainView extends JFrame {
         tabela.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Renderizador para esconder a senha com ******
         tabela.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             protected void setValue(Object value) {
-                super.setValue("******"); // Mascara a senha visualmente
+                super.setValue("******");
             }
         });
 
         JScrollPane scrollPane = new JScrollPane(tabela);
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- Rodapé ---
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         lblUsuarioLogado = new JLabel("Usuário: Desconhecido");
         rodape.add(lblUsuarioLogado);
@@ -87,7 +83,6 @@ public class MainView extends JFrame {
         return btn;
     }
 
-    // Getters para o Controller usar
     public JTable getTabela() { return tabela; }
     public DefaultTableModel getModeloTabela() { return modeloTabela; }
     public JButton getBtnNovo() { return btnNovo; }
